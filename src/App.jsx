@@ -1,21 +1,45 @@
-import { auth,provider } from './firebase/firebaseConfig'
-import {signInWithPopup} from 'firebase/auth';
-
-import './App.css'
+import { useRef, useState } from 'react'
+import Auth from './component/Auth'
+import Chat from './component/Chat';
 
 function App() {
   
-  const handleSign = () => {
+  const [isAuth,setIsAuth] = useState(localStorage.getItem('token'));
+  const [room,setRoom] = useState(null)
+ 
+  const inputRef = useRef();
 
-    signInWithPopup(auth,provider).then((res) => console.log(res));
-    
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    setIsAuth(false)
+  }
+
+  if(!isAuth){
+    return (
+      <div className='app'>
+        <Auth setIsAuth={setIsAuth} />
+      </div>
+    )
   }
 
   return (
-    <>
-      <h1>Login</h1>
-      <button onClick={handleSign} >Google</button>
-    </>
+    <div className='container'>
+      {room ? (<Chat room={room} />) : (
+        <div className='room-container' >
+        <h1>Chat Room</h1>
+        <p>Choose your chat room.</p>
+        <input type="text" ref={inputRef} />
+        <button id='enter'
+                onClick={()=>setRoom(inputRef.current.value)}
+                >Room In
+        </button>
+        <button id='leave'
+                onClick={handleLogout}
+                >Sign Out
+        </button>
+      </div>
+      )}
+    </div>
   )
 }
 
