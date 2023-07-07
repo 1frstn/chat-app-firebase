@@ -1,29 +1,55 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import {auth ,db} from '../firebase/firebaseConfig'
+import { collection, addDoc, 
+         serverTimestamp, onSnapshot,
+         query, where,
+         orderBy
+
+        } from 'firebase/firestore';
 
 export default function Chat({room}) {
   
-  const [newMessage,setNewMessage] = useState("");
-
+  const [text,setText] = useState("");
+  
+  const messagesDb = collection(db,"messages")
+  console.log("MESAGESDB?>>>>",messagesDb);
   const handleSubmit = () => {
     e.preventDefault();
-    const message = {
+    
+    addDoc(messagesDb,{
       text,
-    }
-    setNewMessage('');
+      user: auth.currentUser.displayName,
+      room,
+      createdAt: serverTimestamp(),
+    });
+
+    setText('');
   }
+
+  useEffect(() => {
+
+    const queryMessage = query(messagesDb,
+      where("room","==",room),
+      orderBy('createdAt')
+      )
+
+    onSnapshot(queryMessage, (snapshot) => {
+      const commingMessages = snapshot.forEach((doc) => {doc.data()})
+    })
+  },[])
 
   return (
     <div className='chat'>
       <div className='chat-info' >
-        <p>Kerem</p>
+        <p>{auth.currentUser.displayName}</p>
         <p>{room}</p>
         <a href="/">Different Room</a>
       </div>
       <div className='messages' ></div>
       <form onSubmit={handleSubmit}>
         <input
-        value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)} 
+        value={text}
+            onChange={(e) => setText(e.target.value)} 
             type="text" 
             placeholder='Type your message' 
         />
